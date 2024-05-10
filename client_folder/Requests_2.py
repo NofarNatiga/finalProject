@@ -197,6 +197,5 @@ class Client:
         if response_.status_code == 200:
             return response_, response_.json()
         else:
-            # Handle non-successful responses (e.g., 401, 404, etc.)
             print(f"Failed to fetch video: HTTP {response_.status_code} - {response_.text}")
             response_.raise_for_status()  # Raise an HTTPError for non-successful responses
