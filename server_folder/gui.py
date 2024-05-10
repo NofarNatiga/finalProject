@@ -180,7 +180,7 @@ class App_3:
 
 
 def main() -> None:
-    ft.app(target=App_3("http://10.0.0.22:6666").main)
+    ft.app(target=App_3("http://127.0.0.1:6666").main)
 
 
 if __name__ == "__main__":
