@@ -5,10 +5,12 @@ from time import sleep
 
 class Client:
     def __init__(self, url):
+        self.token_type = None
         self.super_admin = None
         self.name = None
         self.password = None
         self.server_address = url
+        self.token = None
 
     def authenticate_admin(self, name, password, super_admin):
         credentials = {"name": name, "password": password, "super_admin": super_admin}
@@ -22,25 +24,33 @@ class Client:
             self.name = name
             self.password = password
             self.super_admin = super_admin
+            data = response_.json()
+
+            self.token = data.get("access_token")
+            self.token_type = data.get("token_type")
 
         return response_, response_.json()
 
     def block(self, username):
-        credentials = {"name": self.name, "password": self.password, "super_admin": self.super_admin}
+        headers = {
+            "Authorization": f"{self.token_type} {self.token}",
+        }
         params = {"user": username}
         response_ = requests.post(
             f"{self.server_address}/block",
-            json=credentials,
+            headers=headers,
             params=params
         )
 
         return response_, response_.json()
 
     def for_gui(self):
-        credentials = {"name": self.name, "password": self.password, "super_admin": self.super_admin}
+        headers = {
+            "Authorization": f"{self.token_type} {self.token}",
+        }
         response = requests.get(
             f"{self.server_address}/for_gui",
-            json=credentials
+            headers=headers
 
         )
         return response, response.json()
@@ -85,8 +95,9 @@ class Login_Signup_Card_2:
         self.login_button = ft.ElevatedButton("Log in", on_click=self.login)
         self.signup_button = ft.ElevatedButton("Sign up", on_click=self.sign_up, )
 
-        self.name = ft.TextField(label="Name", filled=True, width=270, height=40,
-                                 )
+        self.color = ft.colors.WHITE
+
+        self.name = ft.TextField(label="Name", filled=True, width=270, height=40)
         self.password = ft.TextField(label="Password", height=40, filled=True,
                                      can_reveal_password=True, width=270, password=True)
 
@@ -120,6 +131,21 @@ class Login_Signup_Card_2:
                 width=500, padding=10, height=500,
             ), elevation=20,
         )
+        self.chip = ft.Chip(
+            label=ft.Text("Dark Theme"),
+            bgcolor=ft.colors.BLUE_50,
+            disabled_color=ft.colors.BLUE_50,
+            autofocus=True,
+            show_checkmark=True,
+            on_select=self.selected
+        )
+
+    def selected(self, e):
+        if self.page.theme_mode == "dark":
+            self.page.theme_mode = "light"
+        else:
+            self.page.theme_mode = "dark"
+        self.page.update()
 
     def login(self, e: ft.ControlEvent):
         name = self.name.value
@@ -160,6 +186,7 @@ class Login_Signup_Card_2:
 
 class App_3:
     def __init__(self, url: str) -> None:
+        self.chip = None
         self.page = None
         self.client = Client(url)
         self.card = None
@@ -168,19 +195,19 @@ class App_3:
         self.page = page
         self.page.window_height = 700
         self.page.window_width = 700
-        self.page.theme_mode = "dark"
 
         self.page.horizontal_alignment = 'CENTER'
         self.page.vertical_alignment = 'CENTER'
 
         if self.client.name is None and self.client.password is None:
             self.card = Login_Signup_Card_2(self.page, self.client).card
+            self.chip = Login_Signup_Card_2(self.page, self.client).chip
             self.page.update()
-            self.page.add(self.card)
+            self.page.add(self.card, self.chip)
 
 
 def main() -> None:
-    ft.app(target=App_3("http://127.0.0.1:6666").main)
+    ft.app(target=App_3("http://10.0.0.22:7777").main)
 
 
 if __name__ == "__main__":
