@@ -941,9 +941,7 @@ def authenticate_admin(current_user: AdminUser):
 @app.post("/block")
 def block_from_adding(user: str, current_user: AdminUser = Depends(get_current_user_admin)):
     session = Session()
-    user_row = session.query(admin_users).filter_by(name=current_user.name,
-                                                    password=hash_password(current_user.password),
-                                                    super_admin=current_user.super_admin).first()
+    user_row = session.query(admin_users).filter_by(name=current_user.name).first()
     if not user_row:
         session.close()
         return {"response": "user not authenticated"}

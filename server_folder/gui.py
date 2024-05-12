@@ -78,14 +78,15 @@ class App_1:
                 maintain_state=True,
                 controls=[
                     ft.ListTile(title=ft.Text(i["size"]["text"]),
-                                trailing=ft.IconButton(icon=ft.icons.BLOCK_SHARP, icon_color=color),
-                                on_click=lambda event: self.clicked(i["name"]), tooltip="Block from adding more")]
+                                trailing=ft.ElevatedButton(text="Block from adding more",icon=ft.icons.BLOCK_SHARP, icon_color=color),
+                                on_click= self.clicked(i["name"]))]
             )
             self.page.add(r)
         self.page.update()
 
     def clicked(self, username: str):
         print(self.client.block(username))
+        print("clicked!!")
 
 
 class Login_Signup_Card_2:
