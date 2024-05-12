@@ -29,6 +29,7 @@ class Client:
             self.token = data.get("access_token")
             self.token_type = data.get("token_type")
 
+        print(response_.json())
         return response_, response_.json()
 
     def block(self, username):
@@ -41,7 +42,7 @@ class Client:
             headers=headers,
             params=params
         )
-
+        print(response_.json())
         return response_, response_.json()
 
     def for_gui(self):
@@ -78,13 +79,13 @@ class App_1:
                 controls=[
                     ft.ListTile(title=ft.Text(i["size"]["text"]),
                                 trailing=ft.IconButton(icon=ft.icons.BLOCK_SHARP, icon_color=color),
-                                on_click=self.clicked(i["name"]), tooltip="Block from adding more")]
+                                on_click=lambda event: self.clicked(i["name"]), tooltip="Block from adding more")]
             )
             self.page.add(r)
         self.page.update()
 
     def clicked(self, username: str):
-        self.client.block(username)
+        print(self.client.block(username))
 
 
 class Login_Signup_Card_2:

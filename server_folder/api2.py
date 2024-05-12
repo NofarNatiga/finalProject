@@ -5,11 +5,13 @@ import json
 import os
 import uuid
 from pathlib import Path
+from typing import Union
+
 from starlette.staticfiles import StaticFiles
 
 from server_folder import j_classes
 import cv2
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 
 from jose import JWTError, jwt
 
@@ -393,7 +395,7 @@ def for_get_images(attribute, name, public=False, current_user: User = Depends(g
     return response
 
 
-def get_images(attribute, name, user_data1: j_classes.User_Data, public: bool):
+def get_images(attribute, value, user_data1: j_classes.User_Data, public: bool):
     all_works = user_data1.all_works
     all_categories = user_data1.all_categories
 
@@ -403,7 +405,7 @@ def get_images(attribute, name, user_data1: j_classes.User_Data, public: bool):
     elif attribute.lower() == "category":
         c = None
         for category in all_categories:
-            if category.name == name:
+            if category.name == value:
                 c = category
                 print(c.name)
                 break
@@ -420,7 +422,7 @@ def get_images(attribute, name, user_data1: j_classes.User_Data, public: bool):
     elif attribute.lower() == "title":
         relevant_works = []
         for work in all_works:
-            if work.title == name:
+            if work.title == value:
                 relevant_works.append(work)
 
         image_data_and_info = get_image_info_list(relevant_works, user_data1.name)
@@ -428,7 +430,7 @@ def get_images(attribute, name, user_data1: j_classes.User_Data, public: bool):
     elif attribute.lower() == "date":
         relevant_works = []
         for work in all_works:
-            if work.date == name:
+            if work.date == value:
                 relevant_works.append(work)
 
         image_data_and_info = get_image_info_list(relevant_works, user_data1.name)
@@ -436,7 +438,7 @@ def get_images(attribute, name, user_data1: j_classes.User_Data, public: bool):
     elif attribute.lower() == "rating":
         relevant_works = []
         for work in all_works:
-            if work.rating == int(name):
+            if work.rating == int(value):
                 relevant_works.append(work)
 
         image_data_and_info = get_image_info_list(relevant_works, user_data1.name)
@@ -695,6 +697,7 @@ def add_work_video2(title: str, category_names: list[str], rating: int, descript
         "date": date,
         "public": public
     }
+    print("Video Path:", video_path)
 
     # Create a Work instance (assuming you have a Work class)
     work_instance = j_classes.Work.load(work_dict)
@@ -749,14 +752,34 @@ def save_video_file(video_file: UploadFile, current_user: User) -> str:
 
 
 @app.get("/video_url/{title}")
-def get_video_url(title: str, current_user: User = Depends(get_current_user)):
+def get_video_url(title: str, name, current_user: User = Depends(get_current_user)):
     session = Session()
-    user_row = session.query(users).filter_by(name=current_user.name).first()
-    if not user_row:
-        session.close()
-        return {"response": "user not authenticated"}
+    if name != current_user.name:
+        user_row = session.query(users).filter_by(name=name).first()
+        if user_row is None:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    # Database session handling
+        user_data1 = j_classes.User_Data.load(json.loads(user_row.all_user_data))
+        all_works = user_data1.all_works
+        for a in all_works:
+            if a.title == title:
+                if not a.public:
+                    session.close()
+                    return {"response": "user not authenticated"}
+                else:
+                    video_path = a.image_path
+                    if video_path is None:
+                        raise HTTPException(status_code=404, detail="Video title not found")
+
+                    video_file = Path(video_path)
+                    if not video_file.exists() or not video_file.is_file():
+                        raise HTTPException(status_code=404, detail="Video file not found")
+
+                    # Construct the video URL
+                    video_url = f"{base_video_url}/{name}/{video_file.name}"
+                    session.close()
+                    return {"response": "success", "video_url": video_url}
+
     try:
         # Fetch user data
         user_row = session.query(users).filter_by(name=current_user.name).first()
@@ -807,7 +830,7 @@ def get_folder_size(name_of_user):
     return {"text": "Folder size: " + str(size / 1048576) + "MB", "data": size / 1048576}
 
 
-def get_user_data() -> dict[str, str | list[j_classes.User_Data]]:
+def get_user_data() -> dict[str, Union[str, list[j_classes.User_Data]]]:
     session = Session()
     try:
         user_rows = session.query(users).all()
@@ -830,10 +853,35 @@ def get_user_data() -> dict[str, str | list[j_classes.User_Data]]:
         session.close()
 
 
+def get_current_user_admin(token: str = Depends(oauth2_scheme)):
+    try:
+        # Decode the token using the secret key and algorithm
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            return {"response": "Invalid Token"}
+    except JWTError:
+        return {"response": "Invalid Token"}
+
+    # Query the user by username
+    session = Session()
+    user = session.query(admin_users).filter_by(name=username).first()
+    session.close()
+
+    if not user:
+        return {"response": "User not found"}
+
+    return user
+
+
 @app.get("/for_gui")
-def for_gui(current_user: AdminUser):
-    if authenticate_admin(current_user)["response"] != "user authenticated":
+def for_gui(current_user: AdminUser = Depends(get_current_user_admin)):
+    session = Session()
+    user_row = session.query(admin_users).filter_by(name=current_user.name).first()
+    if not user_row:
+        session.close()
         return {"response": "user not authenticated"}
+    session.close()
 
     users_data = []
     name_and_space = []
@@ -849,12 +897,13 @@ def for_gui(current_user: AdminUser):
 
 
 @app.post("/add_admin")
-def add_admin(current_user: User, new_user: AdminUser):
+def add_admin(new_user: AdminUser, current_user: AdminUser = Depends(get_current_user_admin)):
     session = Session()
     user = session.query(admin_users).filter_by(name=current_user.name,
                                                 password=hash_password(current_user.password)).first()
 
     if session.query(admin_users).filter_by(name=new_user.name).first():  # if name already in use
+        session.close()
         return {"response": "User already exists"}
 
     if user and user.super_admin:
@@ -864,6 +913,8 @@ def add_admin(current_user: User, new_user: AdminUser):
             )
         )
         session.commit()
+        session.close()
+
         return {"response": "admin added successfully"}
     return {"response": "user isn't authorize"}
 
@@ -875,19 +926,32 @@ def authenticate_admin(current_user: AdminUser):
     user = session.query(admin_users).filter_by(name=current_user.name, password=hash_password(current_user.password),
                                                 super_admin=current_user.super_admin).first()
     if user:
-        return {"response": "user authenticated"}
+        access_token = create_access_token(data={"sub": current_user.name})
+        session.close()
+        return {
+            "response": "user authenticated",
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
 
+    session.close()
     return {"response": "user not authenticated"}
 
 
 @app.post("/block")
-def block_from_adding(current_user: AdminUser, user: str):
+def block_from_adding(user: str, current_user: AdminUser = Depends(get_current_user_admin)):
     session = Session()
-    if authenticate_admin(current_user)["response"] == "user authenticated":
-        session.execute(update(users).where(users.c.name == user).values(allowed=False))
-        session.commit()
-        return {"response": "user block success"}
-    return {"response": "user not authenticated"}
+    user_row = session.query(admin_users).filter_by(name=current_user.name,
+                                                    password=hash_password(current_user.password),
+                                                    super_admin=current_user.super_admin).first()
+    if not user_row:
+        session.close()
+        return {"response": "user not authenticated"}
+
+    session.execute(update(users).where(users.c.name == user).values(allowed=False))
+    session.commit()
+    session.close()
+    return {"response": "user block success"}
 
 
 @app.get("/share_with")

@@ -25,7 +25,7 @@ class App1:
 
 
 def main() -> None:
-    ft.app(target=App1("http://127.0.0.1:6666").main)
+    ft.app(target=App1("http://10.0.0.22:7777").main)
 
 
 if __name__ == "__main__":

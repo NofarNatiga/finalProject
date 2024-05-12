@@ -49,7 +49,7 @@ class add_work:
 
         response, response_j = self.client.get_all("category")
         list1 = []
-
+        print(response_j)
         if response_j["response"] == "success":
             list1 = response_j["data"]
 

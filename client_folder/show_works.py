@@ -9,8 +9,13 @@ def handle_tap(e):
     print(f"handle_tap")
 
 
+def bs_dismissed(e):
+    print("Dismissed!")
+
+
 class Works:
     def __init__(self, page: ft.Page, client: Client):
+        self.sheet_content = ft.Text(value="")
         self.page = page
         self.page.vertical_alignment = ft.alignment.top_left
         self.client = client
@@ -61,7 +66,27 @@ class Works:
                                   self.row, ], spacing=30, alignment=ft.MainAxisAlignment.CENTER)
 
         self.empty_space = ft.Container(height=10)
-        self.page.add(self.empty_space, self.for_search, self.empty_space)
+
+        self.bs = ft.BottomSheet(
+            ft.Container(
+                ft.Column(
+                    [
+                        self.sheet_content,
+                        ft.ElevatedButton("OK, close sheet", on_click=self.close_bs),
+                    ],
+                    tight=True,
+                ),
+                padding=10,
+            ),
+            open=False,
+            on_dismiss=bs_dismissed
+        )
+
+        self.page.add(self.empty_space, self.for_search, self.empty_space, self.bs)
+
+    def close_bs(self, e):
+        self.bs.open = False
+        self.bs.update()
 
     def handle_options(self, e: ft.ControlEvent):
         if self.search_in.value is NoneType:
@@ -209,7 +234,7 @@ class Works:
                 )
             elif image_info["type"] == "video":
                 # Create a Video component using the video URL
-                video_url, j_video_url = self.client.video(image_info["title"])
+                video_url, j_video_url = self.client.video(image_info["title"], image_info["name"])
                 j_video_url = j_video_url["video_url"]
                 sample_media = [
 
@@ -323,7 +348,15 @@ class Works:
 
         print(dict1)
         if dict1 != {}:
-            print(self.client.update_work_details(image_info["title"], dict1))
+            response, j_response = self.client.update_work_details(image_info["title"], dict1)
+            print(j_response)
+            self.show_bs(j_response["response"])
+
+    def show_bs(self, response):
+        self.bs.open = True
+        self.sheet_content.value = str(response)
+        self.page.update()
+        self.bs.update()
 
     def delete(self, image_info):
         print(image_info["title"])

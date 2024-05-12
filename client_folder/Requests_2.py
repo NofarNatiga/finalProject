@@ -148,8 +148,11 @@ class Client:
 
     def get_all_public(self, what: str):
         url = f"{self.server_address}/get_all_public"
+        headers = {
+            "Authorization": f"{self.token_type} {self.token}",
+        }
         params = {"what": what}
-        response_ = requests.get(url, params=params)
+        response_ = requests.get(url, params=params, headers=headers)
 
         print(response_.json())
         print(response_)
@@ -168,8 +171,11 @@ class Client:
 
     def get_images_public(self, value: dict):
         url = f"{self.server_address}/public_works"
+        headers = {
+            "Authorization": f"{self.token_type} {self.token}",
+        }
         params = value
-        response_ = requests.get(url, params=params)
+        response_ = requests.get(url, params=params, headers=headers)
 
         return response_, response_.json()
 
@@ -184,15 +190,16 @@ class Client:
         )
         return response_, response_.json()
 
-    def video(self, title):
+    def video(self, title, name):
         headers = {
             "Authorization": f"{self.token_type} {self.token}",
             "Content-Type": "application/json"
         }
         response_ = requests.get(
-            f"{self.server_address}/video_url/{title}",
-            headers=headers
+            f"{self.server_address}/video_url/{title}/{name}",
+            headers=headers,
         )
+        print(response_, response_.json())
 
         if response_.status_code == 200:
             return response_, response_.json()
