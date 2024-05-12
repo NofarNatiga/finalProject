@@ -24,7 +24,7 @@ class NavigationBar:
             text_align=ft.TextAlign.LEFT,  # Centered text
             width=400
         )
-        self.account_button = ft.ElevatedButton(text="Log out",
+        self.account_button = ft.ElevatedButton(text="Delete Account",
                                                 on_click=lambda event: self.client.signout())  # bgcolor="#ff9180",
         self.starting_row = ft.Row([self.page_title_text, self.account_button], alignment=ft.alignment.top_center,
                                    vertical_alignment=ft.alignment.top_center, width=1300, spacing=825, height=100)

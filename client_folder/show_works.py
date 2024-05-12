@@ -57,7 +57,7 @@ class Works:
         self.row = ft.Row(alignment=ft.MainAxisAlignment.CENTER,
                           controls=[
                               ft.IconButton(icon=ft.icons.SEARCH,
-                                            on_click=lambda _: self.anchor.open_view()
+                                            on_click=lambda _e: self.anchor.open_view()
                                             ),
                           ], )
 

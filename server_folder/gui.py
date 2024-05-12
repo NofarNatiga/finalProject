@@ -72,14 +72,15 @@ class App_1:
                 title=ft.Text("User : " + i["name"]),
                 icon_color=color,
                 collapsed_icon_color=color,
-                subtitle=ft.Text("Trailing expansion arrow icon"),
+                subtitle=ft.Text("Click to see more"),
                 affinity=ft.TileAffinity.PLATFORM,
                 initially_expanded=False,
                 maintain_state=True,
                 controls=[
                     ft.ListTile(title=ft.Text(i["size"]["text"]),
-                                trailing=ft.ElevatedButton(text="Block from adding more",icon=ft.icons.BLOCK_SHARP, icon_color=color),
-                                on_click= self.clicked(i["name"]))]
+                                trailing=ft.ElevatedButton(text="Block from adding more", icon=ft.icons.BLOCK_SHARP,
+                                                           icon_color=color),
+                                on_click=lambda e: self.clicked(i["name"]))]
             )
             self.page.add(r)
         self.page.update()
@@ -117,15 +118,15 @@ class Login_Signup_Card_2:
                     [
                         ft.ListTile(
                             leading=ft.Icon(ft.icons.ACCOUNT_CIRCLE),
-                            title=ft.Text("Login or Sign up"),
+                            title=ft.Text("Login Page"),
                             subtitle=ft.Text(
-                                "Log in to your art proto-folio account or create an account if you don't already have one "
+                                "Log in to the system "
                             ),
                         ),
                         ft.Row([self.content], alignment=ft.MainAxisAlignment.CENTER),
                         ft.Row([self.response], alignment=ft.MainAxisAlignment.CENTER),
                         ft.Row(
-                            [self.login_button, self.signup_button],
+                            [self.login_button],
                             alignment=ft.MainAxisAlignment.CENTER,
                         ),
                     ], spacing=40

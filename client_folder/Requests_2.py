@@ -34,7 +34,6 @@ class Client:
     def signout(self):
         headers = {
             "Authorization": f"{self.token_type} {self.token}",
-            "Content-Type": "application/json"
         }
         response_ = requests.post(
             f"{self.server_address}/signout",
@@ -196,7 +195,7 @@ class Client:
             "Content-Type": "application/json"
         }
         response_ = requests.get(
-            f"{self.server_address}/video_url/{title}/{name}",
+            f"{self.server_address}/video_url/{name}/{title}",
             headers=headers,
         )
         print(response_, response_.json())

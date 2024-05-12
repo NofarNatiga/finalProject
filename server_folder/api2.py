@@ -98,7 +98,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def create_access_token(data: dict):
-    """Create a JWT access token."""
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -727,8 +726,8 @@ def save_video_file(video_file: UploadFile, current_user: User) -> str:
         os.makedirs(user_directory)
         os.system(f'attrib +h "{user_directory}"')
 
-        mount_path = f"/videos/{current_user.name}"
-        app.mount(mount_path, StaticFiles(directory=user_directory), name=current_user.name)
+    mount_path = f"/videos/{current_user.name}"
+    app.mount(mount_path, StaticFiles(directory=user_directory), name=current_user.name)
 
     # Get the file extension from the uploaded video file
     original_extension = video_file.content_type
@@ -751,8 +750,9 @@ def save_video_file(video_file: UploadFile, current_user: User) -> str:
     return str(file_path)
 
 
-@app.get("/video_url/{title}")
-def get_video_url(title: str, name, current_user: User = Depends(get_current_user)):
+@app.get("/video_url/{name}/{title}")
+def get_video_url(name: str, title:str, current_user: User = Depends(get_current_user)):
+    print("inside video url!!!")
     session = Session()
     if name != current_user.name:
         user_row = session.query(users).filter_by(name=name).first()
