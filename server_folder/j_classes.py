@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from dataclasses import dataclass
 import os
 
@@ -10,13 +10,13 @@ class Category:
     description: str
 
     @classmethod
-    def load(cls, data: dict[str, str | list['Work']]) -> 'Category':
+    def load(cls, data: dict[str, Union[str, list['Work']]]) -> 'Category':
         associated_works_data = data.get("associated_works", [])
         print(f"Loading associated works: {associated_works_data}")  # Debugging
         return cls(name=data["name"], associated_works=[Work.load(work_data) for work_data in associated_works_data],
                    description=data["description"])
 
-    def dump(self) -> dict[str, str | list['Work']]:
+    def dump(self) -> dict[str, Union[str, list['Work']]]:
         return {"name": self.name, "associated_works": [work.dump() for work in self.associated_works],
                 "description": self.description}
 
