@@ -449,18 +449,23 @@ def get_images(attribute, value, user_data1: j_classes.User_Data, public: bool):
 
 def get_image_info_list(works, name: str):
     image_info_list = []
+    # Iterate over each work in the provided list of works
     for work in works:
+        # Check if the file extension indicates an image file
         if Path(work.image_path).suffix in ['.jpg', '.png', '.jpeg']:
+            # Open the image file in binary mode
             with open(work.image_path, "rb") as image:
                 image_data = image.read()
+                # Construct the path to the key file
                 path = base_path + "\\" + name + "\\key.key"
 
                 with open(path, 'rb') as f:
                     key = f.read()
 
                 fernet = Fernet(key)
+                # Decrypt the image data using the Fernet cipher
                 image_data = fernet.decrypt(image_data)
-
+                # Open the decrypted image using PIL
                 image = Image.open(
                     io.BytesIO(image_data))  # loads the image data from bytes format into a PIL Image object
                 width, height = image.size
@@ -477,9 +482,12 @@ def get_image_info_list(works, name: str):
 
                               }
                 image_info_list.append(image_info)
+
         elif Path(work.image_path).suffix in ['.mp4', '.mov', '.avi']:
             print("inside video")
+            # Extract a preview image from the video file
             preview_image_data = extract_preview_image(work.image_path, )
+            # Construct a dictionary containing video information
             image_info = {
                 "type": "video",
                 "data": base64.b64encode(preview_image_data).decode(),
@@ -494,7 +502,7 @@ def get_image_info_list(works, name: str):
             image_info_list.append(image_info)
         else:
             pass
-
+    # Return the list of image information dictionaries
     return image_info_list
 
 

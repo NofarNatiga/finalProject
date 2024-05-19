@@ -20,9 +20,8 @@ from sqlalchemy import create_engine, MetaData, Table, Column, String, delete, u
 from sqlalchemy.orm import sessionmaker
 from typing_extensions import TypedDict
 from cryptography.fernet import Fernet
-from time import sleep
 
-base_video_url = "http://10.0.0.22:6666/videos"
+base_video_url = "http://127.0.0.1:6666/videos"
 
 global base_path
 base_path = "C:\\new"
@@ -54,7 +53,7 @@ admin_users = Table(
 
 metadata.create_all(engine)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 class UserCreate(BaseModel):
@@ -90,7 +89,7 @@ def hash_password(password: str) -> str:
 
 @app.post("/signup")
 def signup(user_data: UserCreate) -> dict:
-    session = SessionLocal()
+    session = Session()
     if session.query(users).filter_by(name=user_data.name).first():  # if name already in use
         return {"response": "User already exists"}
 
@@ -109,7 +108,7 @@ def signup(user_data: UserCreate) -> dict:
 
 @app.post("/signout")
 def signout(current_user: UserCreate) -> dict:
-    session = SessionLocal()
+    session = Session()
     if authenticate(current_user)["response"].lower() == "user not authenticated":
         return {
             "response": "not authenticated"}  # not authenticated will be a better response but im not going to change it now
@@ -125,19 +124,20 @@ def signout(current_user: UserCreate) -> dict:
 
 @app.post("/authenticate")
 def authenticate(user_data: UserCreate) -> dict:
-    session = SessionLocal()
+    session = Session()
 
     user = session.query(users).filter_by(name=user_data.name, password=hash_password(user_data.password)).first()
 
     if user:
+        session.close()
         return {"response": "user authenticated"}
-
+    session.close()
     return {"response": "user not authenticated"}
 
 
 @app.post("/update_work_details")
 def update_work_details(current_user: UserCreate, work_title: str, work_details: dict):
-    session = SessionLocal()
+    session = Session()
 
     # check if the user is authenticated
     if authenticate(current_user)["response"].lower() == "user authenticated":
@@ -153,16 +153,16 @@ def update_work_details(current_user: UserCreate, work_title: str, work_details:
         session.execute(update(users).where(users.c.name == current_user.name).values(all_user_data=user_data1))
 
         session.commit()
-
+        session.close()
         print(response_data["response"])
         return response_data
-
+    session.close()
     return {"response": "user not authenticated"}
 
 
 @app.post("/update_category_details")
 def update_category_details(current_user: UserCreate, category_title: str, category_details: dict):
-    session = SessionLocal()
+    session = Session()
 
     # check if the user is authenticated
     if authenticate(current_user)["response"].lower() == "user authenticated":
@@ -186,7 +186,7 @@ def update_category_details(current_user: UserCreate, category_title: str, categ
 
 @app.post("/add_category")
 def add_category(current_user: UserCreate, category: CategoryDict):
-    session = SessionLocal()
+    session = Session()
 
     # Check if the user is authenticated
     if authenticate(current_user)["response"].lower() == "user authenticated":
@@ -215,7 +215,7 @@ def add_category(current_user: UserCreate, category: CategoryDict):
 
 @app.post("/delete_category")
 def delete_category(current_user: UserCreate, category_name: str):
-    session = SessionLocal()
+    session = Session()
 
     # Check if the user is authenticated
     if authenticate(current_user)["response"].lower() == "user authenticated":
@@ -238,7 +238,7 @@ def delete_category(current_user: UserCreate, category_name: str):
 
 @app.post("/delete_work/{name}/{password}/{work_name}")
 def delete_work(name, password, work_name: str):
-    session = SessionLocal()
+    session = Session()
     current_user = UserCreate(name=name, password=password)
 
     # Check if the user is authenticated
@@ -263,7 +263,7 @@ def delete_work(name, password, work_name: str):
 
 @app.get("/for_get_all")
 def for_get_all(current_user: UserCreate, what: str = Query(...)):
-    session = SessionLocal()
+    session = Session()
 
     if authenticate(current_user)["response"].lower() == "user authenticated":
         user_row = session.query(users).filter_by(name=current_user.name).first()
@@ -297,7 +297,7 @@ def get_all(user_data1: j_classes.User_Data, what: str = Query(...)):
 
 @app.get("/get_all_public")
 def get_all_public(current_user: UserCreate, what: str = Query(...)):
-    session = SessionLocal()
+    session = Session()
 
     # Authenticate the user
     if authenticate(current_user)["response"].lower() == "user authenticated":
@@ -330,7 +330,7 @@ def get_all_public(current_user: UserCreate, what: str = Query(...)):
 
 @app.get("/for_get_images")
 def for_get_images(current_user: UserCreate, attribute, name, public=False):
-    session = SessionLocal()
+    session = Session()
 
     if authenticate(current_user)["response"].lower() == "user authenticated":
         user_row = session.query(users).filter_by(name=current_user.name).first()
@@ -450,7 +450,7 @@ def get_image_info_list(works, name: str):
 @app.get("/public_works")
 def public_works(current_user: UserCreate, attribute, name):
     # Create a session
-    session = SessionLocal()
+    session = Session()
 
     # Authenticate the user
     if authenticate(current_user)["response"].lower() == "user authenticated":
@@ -495,7 +495,7 @@ def extract_preview_image(video_path):
 
 @app.post("/add_work")
 def add_work(current_user: UserCreate, work: WorkDict):
-    session = SessionLocal()
+    session = Session()
 
     # Check if the user is authenticated
     if authenticate(current_user)["response"].lower() == "user authenticated":
@@ -617,7 +617,7 @@ def is_valid_base64_image_magic_number(base64_data: str) -> bool:
 def add_work_video2(title: str, category_names: list[str], rating: int, description: str, public: bool, date: str,
                     password: str, name: str, video_file: UploadFile = File(...)):
     current_user = UserCreate(name=name, password=password)
-    session = SessionLocal()
+    session = Session()
 
     # Check if the user is authenticated
     if authenticate(current_user)["response"].lower() != "user authenticated":
@@ -704,7 +704,7 @@ def get_video_url(name: str, password: str, title: str):
         return {"response": "user not authenticated"}
 
     # Database session handling
-    session = SessionLocal()
+    session = Session()
     try:
         # Fetch user data
         user_row = session.query(users).filter_by(name=current_user.name).first()
@@ -756,7 +756,7 @@ def get_folder_size(name_of_user):
 
 
 def get_user_data() -> dict[str, str | list[j_classes.User_Data]]:
-    session = SessionLocal()
+    session = Session()
     try:
         user_rows = session.query(users).all()
 
@@ -798,7 +798,7 @@ def for_gui(current_user: AdminUser):
 
 @app.post("/add_admin")
 def add_admin(current_user: UserCreate, new_user: AdminUser):
-    session = SessionLocal()
+    session = Session()
     user = session.query(admin_users).filter_by(name=current_user.name,
                                                 password=hash_password(current_user.password)).first()
 
@@ -818,7 +818,7 @@ def add_admin(current_user: UserCreate, new_user: AdminUser):
 
 @app.post("/authenticate_admin")
 def authenticate_admin(current_user: AdminUser):
-    session = SessionLocal()
+    session = Session()
 
     user = session.query(admin_users).filter_by(name=current_user.name, password=hash_password(current_user.password),
                                                 super_admin=current_user.super_admin).first()
@@ -830,9 +830,14 @@ def authenticate_admin(current_user: AdminUser):
 
 @app.post("/block")
 def block_from_adding(current_user: AdminUser, user: str):
-    session = SessionLocal()
+    session = Session()
     if authenticate_admin(current_user)["response"] == "user authenticated":
         session.execute(update(users).where(users.c.name == user).values(allowed=False))
         session.commit()
         return {"response": "user block success"}
     return {"response": "user not authenticated"}
+
+
+@app.get("/share_with")
+def share_with():
+    pass
