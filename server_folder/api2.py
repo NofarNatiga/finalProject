@@ -340,6 +340,8 @@ def get_all(user_data1: j_classes.User_Data, what: str = Query(...)):
 
     elif what.upper() == "RATING":
         list1 = [w.rating for w in all_works]
+    elif what.upper() == "ALL":
+        list1 = ["all"]
     else:
         return {"response": "attribute not found"}  # 'what' given is not an option
 
@@ -381,7 +383,7 @@ def get_all_public(what: str = Query(...), current_user: User = Depends(get_curr
 
 
 @app.get("/for_get_images")
-def for_get_images(attribute, name, public=False, current_user: User = Depends(get_current_user)):
+def for_get_images(attribute, name, public, current_user: User = Depends(get_current_user)):
     session = Session()
     user_row = session.query(users).filter_by(name=current_user.name).first()
     if not user_row:
@@ -404,6 +406,7 @@ def get_images(attribute, value, user_data1: j_classes.User_Data, public: bool):
     elif attribute.lower() == "category":
         c = None
         for category in all_categories:
+            print(category.name == value)
             if category.name == value:
                 c = category
                 print(c.name)
@@ -412,10 +415,16 @@ def get_images(attribute, value, user_data1: j_classes.User_Data, public: bool):
             return {"response": "category is empty"}
 
         list1 = c.associated_works
-        if public:
+        print(list1)
+        print(c.associated_works)
+        print(c)
+        if public is True:
+            list1 = []
             for work in c.associated_works:
                 if work.public:
                     list1.append(work)
+
+        print(list1)
         image_data_and_info = get_image_info_list(list1, user_data1.name)
 
     elif attribute.lower() == "title":
@@ -449,23 +458,23 @@ def get_images(attribute, value, user_data1: j_classes.User_Data, public: bool):
 
 def get_image_info_list(works, name: str):
     image_info_list = []
-    # Iterate over each work in the provided list of works
+    # Iterates over each work in the provided list of works
     for work in works:
-        # Check if the file extension indicates an image file
+        # Checks if the file extension indicates an image file
         if Path(work.image_path).suffix in ['.jpg', '.png', '.jpeg']:
-            # Open the image file in binary mode
+            # Opens the image file in binary mode
             with open(work.image_path, "rb") as image:
                 image_data = image.read()
-                # Construct the path to the key file
+                # Constructs the path to the key file
                 path = base_path + "\\" + name + "\\key.key"
 
                 with open(path, 'rb') as f:
                     key = f.read()
 
                 fernet = Fernet(key)
-                # Decrypt the image data using the Fernet cipher
+                # Decrypts the image data using the Fernet cipher
                 image_data = fernet.decrypt(image_data)
-                # Open the decrypted image using PIL
+                # Opens the decrypted image using PIL
                 image = Image.open(
                     io.BytesIO(image_data))  # loads the image data from bytes format into a PIL Image object
                 width, height = image.size
@@ -485,9 +494,9 @@ def get_image_info_list(works, name: str):
 
         elif Path(work.image_path).suffix in ['.mp4', '.mov', '.avi']:
             print("inside video")
-            # Extract a preview image from the video file
+            # Extracts a preview image from the video file
             preview_image_data = extract_preview_image(work.image_path, )
-            # Construct a dictionary containing video information
+            # Constructs a dictionary containing video information
             image_info = {
                 "type": "video",
                 "data": base64.b64encode(preview_image_data).decode(),
@@ -502,7 +511,7 @@ def get_image_info_list(works, name: str):
             image_info_list.append(image_info)
         else:
             pass
-    # Return the list of image information dictionaries
+    # Returns the list of image information dictionaries
     return image_info_list
 
 
@@ -553,7 +562,7 @@ def extract_preview_image(video_path):
 
 @app.post("/add_work")
 def add_work(work: WorkDict, current_user: User = Depends(get_current_user)):
-    session = Session()
+    session = Session()  # starting session
 
     user_row = session.query(users).filter_by(name=current_user.name).first()
     if not user_row:
@@ -569,7 +578,8 @@ def add_work(work: WorkDict, current_user: User = Depends(get_current_user)):
         session.close()
         return {"response": "user used all free storage"}
 
-    user_data1 = j_classes.User_Data.load(json.loads(user_row.all_user_data))
+    user_data1 = j_classes.User_Data.load(
+        json.loads(user_row.all_user_data))  # getting info from database and loading it into user_data object
 
     image_data = base64.b64decode(work["image"])
 
@@ -600,8 +610,6 @@ def add_work(work: WorkDict, current_user: User = Depends(get_current_user)):
 
     print(response_data["response"])
 
-    print(response_data)
-
     return response_data
 
 
@@ -611,7 +619,7 @@ def upload_image(image_data: bytes, current_user: User) -> str:
     path = base_path + "\\" + current_user.name + "\\" + "image"
     if not os.path.exists(path):
         os.makedirs(path)
-        os.system(f'attrib +h "{path}"')  # hiding the folder cause riki said so
+        os.system(f'attrib +h "{path}"')  # hiding the folder
 
     key_path = base_path + "\\" + current_user.name + "\\" + 'key.key'
     if not os.path.exists(key_path):
@@ -691,10 +699,10 @@ def add_work_video2(title: str, category_names: list[str], rating: int, descript
 
     user_data1 = j_classes.User_Data.load(json.loads(user_row.all_user_data))
 
-    # Save the video file and get the file path
+    # Saves the video file and get the file path
     video_path = save_video_file(video_file, current_user)
 
-    # Prepare work data dictionary
+    # Prepares work data dictionary
     work_dict = {
         "title": title,
         "category_names": category_names,
@@ -706,10 +714,10 @@ def add_work_video2(title: str, category_names: list[str], rating: int, descript
     }
     print("Video Path:", video_path)
 
-    # Create a Work instance (assuming you have a Work class)
+    # Creates a Work instance
     work_instance = j_classes.Work.load(work_dict)
 
-    # Add work to user data and update user data in the database
+    # Adds work to user data and update user data in the database
     user_data1.add_work(work_instance)
     user_data1 = json.dumps(user_data1.dump())
 
@@ -723,28 +731,28 @@ def add_work_video2(title: str, category_names: list[str], rating: int, descript
 
 # Function to save the video file
 def save_video_file(video_file: UploadFile, current_user: User) -> str:
-    # Define the base directory for storing user videos
+    # Defines the base directory for storing user videos
     global base_path
     print("inside the save in the server")
 
-    # Create a directory for the current user if it does not exist
+    # Creates a directory for the current user if it does not exist
     user_directory = os.path.join(base_path, current_user.name, "video")
 
     if not os.path.exists(user_directory):
         os.makedirs(user_directory)
         os.system(f'attrib +h "{user_directory}"')
-    # Get the file extension from the uploaded video file
+    # Gets the file extension from the uploaded video file
     original_extension = video_file.content_type
     print("original extension", original_extension)
 
-    # Generate a unique filename using a UUID and the original file extension
+    # Generates a unique filename using a UUID and the original file extension
     print(original_extension)
     filename = uuid.uuid4().hex + "." + original_extension
     print(filename)
-    # Define the full file path for the new video file
+    # Defines the full file path for the new video file
     file_path = Path(user_directory) / filename
 
-    # Save the video file to the file path
+    # Saves the video file to the file path
     with open(file_path, "wb") as f:
         chunk = video_file.file.read(1024)
         while chunk:
