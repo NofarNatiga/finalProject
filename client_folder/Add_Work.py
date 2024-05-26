@@ -227,6 +227,7 @@ class add_work:
         # self.page.update()
         pass
 
+
     def click_search(self, e: ft.ControlEvent):
         text = f"{e.control.data}"
         print("handle click:", text)

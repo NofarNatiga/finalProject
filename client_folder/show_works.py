@@ -42,6 +42,7 @@ class Works:
                 ft.dropdown.Option("Category"),
                 ft.dropdown.Option("Date"),
                 ft.dropdown.Option("Rating"),
+                ft.dropdown.Option("All")
             ],
         )
 
@@ -184,6 +185,10 @@ class Works:
         )
 
         for image_info in image_data_info_list:
+            if self.client.name == image_info["name"]:
+                color = "#f98c7c"
+            else:
+                color = "#f9f97c"
             if image_info["type"] == "image":
                 images_grid.controls.append(
                     ft.Container(
@@ -196,8 +201,8 @@ class Works:
                                 border_radius=ft.border_radius.all(10),
                                 tooltip=image_info["title"],
                             )
-                            , width=270, height=270, color=ft.colors.GREY_50, elevation=50,
-                        ), on_click=self.clicked(image_info),
+                            , width=270, height=270, color=ft.colors.GREY_50, elevation=50, shadow_color=color
+                        ), on_click=self.clicked(image_info)
                     )
                 )
             else:
@@ -211,7 +216,7 @@ class Works:
                                 border_radius=ft.border_radius.all(10),
                                 tooltip=image_info["title"]
                             )
-                            , width=270, height=270, color=ft.colors.GREY_50, elevation=20,
+                            , width=270, height=270, color=ft.colors.GREY_50, elevation=20, shadow_color=color
                         ), on_click=self.clicked(image_info)
                     )
                 )
@@ -271,7 +276,7 @@ class Works:
             color = ft.colors.WHITE
             title1 = ft.TextField(label="title", value=image_info["title"], bgcolor=color, height=50)
             categories1 = ft.TextField(label="categories", value=image_info["categories"], bgcolor=color, height=50)
-            description1 = ft.TextField(label="description", value=image_info["description"], bgcolor=color, height=50)
+            description1 = ft.TextField(label="description", value=image_info["description"], bgcolor=color, height=100)
             rating1 = ft.Slider(min=0, max=100, divisions=100, label="{value}%", value=image_info["rating"], width=200)
             public1 = ft.Switch(label="public", value=image_info["public"], label_position=ft.LabelPosition.LEFT, )
 

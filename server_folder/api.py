@@ -21,7 +21,7 @@ from sqlalchemy.orm import sessionmaker
 from typing_extensions import TypedDict
 from cryptography.fernet import Fernet
 
-base_video_url = "http://127.0.0.1:6666/videos"
+base_video_url = "http://10.0.0.22:7777/videos"
 
 global base_path
 base_path = "C:\\new"

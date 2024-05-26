@@ -38,7 +38,6 @@ class NavigationBar:
                 ft.NavigationDestination(icon=ft.icons.HOME, label="Home", ),
                 ft.NavigationDestination(icon=ft.icons.ADD, label="Add Work And Category"),
                 ft.NavigationDestination(icon=ft.icons.BOOK_ROUNDED, label="Art Portfolio", ),
-                ft.NavigationDestination(icon=ft.icons.ACCOUNT_BOX, label="Art Portfolio"),
             ]
         )
         self.page.add(self.starting_row)
@@ -63,12 +62,5 @@ class NavigationBar:
             self.page_title_text.value = "Search your Art Portfolio"
             self.page.add(self.starting_row)
             show_work_instance = Works(self.page, self.client)
-        elif selected_index == 3:
-            self.page_title_text.value = "Account"
-            self.page.add(self.starting_row)
-            show_work_instance = Works(self.page, self.client)
+        # Adds the page title text to the page again, as it was removed in the clean() method
 
-        # Add the page title text to the page again, as it was removed in the clean() method
-
-        # Add other content for the selected page
-        # You can add the content of the selected page here

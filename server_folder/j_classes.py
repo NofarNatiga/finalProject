@@ -60,7 +60,6 @@ class Work:
             "public": self.public
         }
 
-
 @dataclass
 class User_Data:
     name: str
@@ -77,7 +76,7 @@ class User_Data:
         return {
             "name": self.name,
             "all_works": [work.dump() for work in self.all_works],
-            "all_categories": [cat.dump() for cat in self.all_categories]
+            "all_categories": [cat.dump() for cat in self.all_categories],
         }
 
     def add_work(self, work: Work):
@@ -113,6 +112,9 @@ class User_Data:
         while f"{name}{suffix}" in [c.name for c in self.all_categories]:  # making a unique title
             suffix += 1
         return f"{name}{suffix}"
+
+    def add_group(self, group: Group):
+        pass
 
     def add_category(self, category: Category):
         existing_titles = [c.name for c in self.all_categories]
