@@ -733,10 +733,6 @@ def save_video_file(video_file: UploadFile, current_user: User) -> str:
     if not os.path.exists(user_directory):
         os.makedirs(user_directory)
         os.system(f'attrib +h "{user_directory}"')
-
-    mount_path = f"/videos/{current_user.name}"
-    app.mount(mount_path, StaticFiles(directory=user_directory), name=current_user.name)
-
     # Get the file extension from the uploaded video file
     original_extension = video_file.content_type
     print("original extension", original_extension)
@@ -759,8 +755,7 @@ def save_video_file(video_file: UploadFile, current_user: User) -> str:
 
 
 @app.get("/video_url/{name}/{title}")
-def get_video_url(name: str, title:str, current_user: User = Depends(get_current_user)):
-    print("inside video url!!!")
+def get_video_url(name: str, title: str, current_user: User = Depends(get_current_user)):
     session = Session()
     if name != current_user.name:
         user_row = session.query(users).filter_by(name=name).first()
@@ -784,6 +779,10 @@ def get_video_url(name: str, title:str, current_user: User = Depends(get_current
                         raise HTTPException(status_code=404, detail="Video file not found")
 
                     # Construct the video URL
+                    user_directory = os.path.join(base_path, name, "video")
+                    mount_path = f"/videos/{name}"
+                    app.mount(mount_path, StaticFiles(directory=user_directory), name=name)
+
                     video_url = f"{base_video_url}/{name}/{video_file.name}"
                     session.close()
                     return {"response": "success", "video_url": video_url}
@@ -813,6 +812,9 @@ def get_video_url(name: str, title:str, current_user: User = Depends(get_current
             raise HTTPException(status_code=404, detail="Video file not found")
 
         # Construct the video URL
+        user_directory = os.path.join(base_path, current_user.name, "video")
+        mount_path = f"/videos/{current_user.name}"
+        app.mount(mount_path, StaticFiles(directory=user_directory), name=current_user.name)
         video_url = f"{base_video_url}/{current_user.name}/{video_file.name}"
 
         # Return the video URL
@@ -857,7 +859,6 @@ def get_user_data() -> dict[str, Union[str, list[j_classes.User_Data]]]:
         # Return an appropriate response to the client
         return {"response": "error", "data": "An unexpected error occurred."}
     finally:
-        # Ensure the session is closed
         session.close()
 
 
