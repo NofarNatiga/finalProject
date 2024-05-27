@@ -517,7 +517,7 @@ def get_image_info_list(works, name: str):
 
 @app.get("/public_works")
 def public_works(attribute, name, current_user: User = Depends(get_current_user)):
-    # Create a session
+    # Creates a session
     session = Session()
     user_row = session.query(users).filter_by(name=current_user.name).first()
     if not user_row:
@@ -646,7 +646,7 @@ def upload_image(image_data: bytes, current_user: User) -> str:
 
 
 def is_valid_base64_image_magic_number(base64_data: str) -> bool:
-    # Check if base64 data starts with a valid image prefix (JPEG, PNG, GIF, BMP)
+    # Checks if base64 data starts with a valid image prefix (JPEG, PNG, GIF, BMP)
     valid_prefixes = [
         "data:image/jpeg;base64,",  # JPEG images
         "data:image/png;base64,",  # PNG images
@@ -660,14 +660,14 @@ def is_valid_base64_image_magic_number(base64_data: str) -> bool:
     if flag is True:
         return flag
 
-    # Remove the prefix from the base64 data
+    # Removes the prefix from the base64 data
     base64_data = base64_data.split(",")[1] if "," in base64_data else base64_data
 
     try:
-        # Decode the base64 data
+        # Decodes the base64 data
         decoded_data = base64.b64decode(base64_data)
 
-        # Check the magic number
+        # Checks the magic number
         magic_numbers = {
             'jpeg': b'\xff\xd8\xff',  # JPEG magic number
             'png': b'\x89PNG\r\n\x1a\n',  # PNG magic number
@@ -796,15 +796,14 @@ def get_video_url(name: str, title: str, current_user: User = Depends(get_curren
                     return {"response": "success", "video_url": video_url}
 
     try:
-        # Fetch user data
         user_row = session.query(users).filter_by(name=current_user.name).first()
         if user_row is None:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Load user data
+        # Loads user data
         user_data = j_classes.User_Data.load(json.loads(user_row.all_user_data))
 
-        # Find the video path based on the title
+        # Finds the video path based on the title
         video_path = None
         for work in user_data.all_works:
             if work.title == title:
@@ -814,18 +813,18 @@ def get_video_url(name: str, title: str, current_user: User = Depends(get_curren
         if video_path is None:
             raise HTTPException(status_code=404, detail="Video title not found")
 
-        # Verify the video file exists
+        # Verifies the video file exists
         video_file = Path(video_path)
         if not video_file.exists() or not video_file.is_file():
             raise HTTPException(status_code=404, detail="Video file not found")
 
-        # Construct the video URL
+        # Constructs the video URL
         user_directory = os.path.join(base_path, current_user.name, "video")
         mount_path = f"/videos/{current_user.name}"
         app.mount(mount_path, StaticFiles(directory=user_directory), name=current_user.name)
         video_url = f"{base_video_url}/{current_user.name}/{video_file.name}"
 
-        # Return the video URL
+        # Returns the video URL
         return {"response": "success", "video_url": video_url}
 
     finally:
@@ -837,13 +836,12 @@ def get_folder_size(name_of_user):
     global base_path
     Folder_path = base_path + "//" + name_of_user
 
-    # get size
+    # gets size
     for path, dirs, files in os.walk(Folder_path):
         for f in files:
             fp = os.path.join(path, f)
             size += os.path.getsize(fp)
 
-    # display size
 
     return {"text": "Folder size: " + str(size / 1048576) + "MB", "data": size / 1048576}
 
@@ -872,7 +870,7 @@ def get_user_data() -> dict[str, Union[str, list[j_classes.User_Data]]]:
 
 def get_current_user_admin(token: str = Depends(oauth2_scheme)):
     try:
-        # Decode the token using the secret key and algorithm
+        # Decodes the token using the secret key and algorithm
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username = payload.get("sub")
         if username is None:

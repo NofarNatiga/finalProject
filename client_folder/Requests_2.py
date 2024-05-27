@@ -8,7 +8,7 @@ class Client:
         self.token_type = None
         self.name = None
         self.password = None
-        self.token = None  # Add a token attribute to store the JWT token
+        self.token = None  # Adds a token attribute to store the JWT token
         self.server_address = url
 
     def authenticate(self, name, password):

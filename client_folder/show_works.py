@@ -225,7 +225,7 @@ class Works:
 
     def clicked(self, image_info):
         def on_click(event):
-            # Clear the page
+            # Clears the page
             self.page.remove(self.empty_space, self.for_search, self.grid)
 
             self.page.vertical_alignment = 'CENTER'
@@ -238,7 +238,7 @@ class Works:
                     fit=ft.ImageFit.CONTAIN
                 )
             elif image_info["type"] == "video":
-                # Create a Video component using the video URL
+                # Creates a Video component using the video URL
                 video_url, j_video_url = self.client.video(image_info["title"], image_info["name"])
                 j_video_url = j_video_url["video_url"]
                 sample_media = [

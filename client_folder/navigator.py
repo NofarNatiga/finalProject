@@ -47,10 +47,10 @@ class NavigationBar:
         # show_home_instance = Home(self.page, self.client)
 
     def change(self, selected_index: int):
-        # Clear the current content of the page
+        # Clears the current content of the page
         self.page.clean()
 
-        # Update the title text based on the selected index
+        # Updates the title text based on the selected index
         if selected_index == 0:
             self.page_title_text.value = "Home"
             self.page.add(self.starting_row)

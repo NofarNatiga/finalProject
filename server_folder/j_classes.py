@@ -60,6 +60,7 @@ class Work:
             "public": self.public
         }
 
+
 @dataclass
 class User_Data:
     name: str
@@ -135,11 +136,11 @@ class User_Data:
         return response
 
     def remove_category(self, category_name: str):
-        # Remove category from list of categories
+        # Removes category from list of categories
         for c in self.all_categories:
             if c.name == category_name:
                 self.all_categories.remove(c)
-                # Remove category name from associated works
+                # Removes category name from associated works
                 for work in self.all_works:
                     if category_name in work.category_names:
                         work.category_names.remove(category_name)
@@ -158,7 +159,7 @@ class User_Data:
                             category.add_work(work)
                             break
 
-                # Remove work from categories it's no longer associated with
+                # Removes work from categories it's no longer associated with
                 for old_category_name in (set(old_category_names) - set(work.category_names)):
                     for category in self.all_categories:
                         if category.name == old_category_name:

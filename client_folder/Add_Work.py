@@ -140,7 +140,7 @@ class add_work:
             try:
                 with open(selected_file.path, "rb") as file:
                     file_data = file.read()
-                    self.file_data = file_data  # Store the binary data of the file
+                    self.file_data = file_data  # Stores the binary data of the file
 
                 self.file_extension = selected_file.path.split('.')[-1]
 
@@ -171,7 +171,7 @@ class add_work:
                 "public": self.public.value
             }
             try:
-                # Create an UploadFile object from the file data
+                # Creates an UploadFile object from the file data
                 file_ = io.BytesIO(self.file_data)
                 upload_file = UploadFile(file=file_, filename=f"video.{self.file_extension}")
                 if self.file_extension in ['jpg', 'png', 'jpeg']:
@@ -181,7 +181,7 @@ class add_work:
                     self.show_bs(response_j["response"])
 
                 elif self.file_extension in ['mp4', 'mov', 'avi']:
-                    # Pass the UploadFile object instead of file_data
+                    # Passes the UploadFile object instead of file_data
                     response, response_j = self.client.add_work_video(data, self.file_data, self.file_extension)
                     logging.info(f"Response: {response}")
                     self.show_bs(response_j["response"])
