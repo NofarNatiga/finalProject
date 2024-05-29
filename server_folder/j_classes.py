@@ -114,9 +114,6 @@ class User_Data:
             suffix += 1
         return f"{name}{suffix}"
 
-    def add_group(self, group: Group):
-        pass
-
     def add_category(self, category: Category):
         existing_titles = [c.name for c in self.all_categories]
         if category.name in existing_titles:
