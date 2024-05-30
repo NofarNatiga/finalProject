@@ -66,7 +66,7 @@ class Works:
                                   self.anchor,
                                   self.row, ], spacing=30, alignment=ft.MainAxisAlignment.CENTER)
 
-        self.empty_space = ft.Container(height=10)
+        self.empty_space = ft.Container(height=3)
 
         self.bs = ft.BottomSheet(
             ft.Container(

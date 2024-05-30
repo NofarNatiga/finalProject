@@ -164,10 +164,8 @@ class User_Data:
                                 category.remove_work(work)
                                 break
                 return {"response": "work updated successfully"}
-            else:
-                return {"response": "no such title"}
 
-        print(f"Work with title '{work_title}' not found.")
+        return {"response": "no such title"}
 
     def update_category_details(self, category_name: str, category_details: dict):
         for category in self.all_categories:

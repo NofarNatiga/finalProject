@@ -210,7 +210,6 @@ def update_work_details(work_title: str, work_details: dict, current_user: User 
 
     session.commit()
     session.close()
-
     print(response_data["response"])
     return response_data
 
@@ -627,7 +626,7 @@ def upload_image(image_data: bytes, current_user: User) -> str:
         # os.makedirs(key_path)
         with open(key_path, 'wb') as f:
             f.write(key)
-
+            os.chmod(key_path, 0o600)
     else:
         with open(key_path, 'rb') as f:
             key = f.read()
